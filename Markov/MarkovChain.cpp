@@ -6,29 +6,17 @@
 //  Copyright (c) 2014 Joseph Redfern. All rights reserved.
 //
 
+#include "MarkovChain.h"
+#include "MarkovTalker.h"
+
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <map>
+
 using namespace std;
-
-class MarkovChain
-{
-private:
-    std::vector<std::string> words;
-    std::map<std::string, double> histogram;
-    std::map<std::string, std::multimap<double, std::string> > firstOrder;
-    
-public:
-    void populate(string);
-    void printDictionary();
-    void generateHistogram();
-    void printHistogram();
-    void generateFirstOrder();
-};
-
 
 int main(int argc, const char * argv[]) {
     string path;
@@ -44,6 +32,18 @@ int main(int argc, const char * argv[]) {
     markov->generateHistogram();
     markov->generateFirstOrder();
     
+    MarkovTalker* talker = new MarkovTalker(*markov);
+    
+    while(true){
+    cout << "Enter seed word: ";
+    string seed;
+    cin >> seed;
+    cout << "\nEnter desired string length: ";
+    int stringLength;
+    cin >> stringLength;
+    
+    cout << talker->generateString(seed, stringLength);
+    }
     return 0;
 }
 
@@ -104,10 +104,24 @@ void MarkovChain::generateFirstOrder(){
             int freq = j->second;
             double probability = freq / this->histogram.at(wordA);
             this->firstOrder[wordA].insert(pair<double, string>(probability, wordB));
-            cout << "Given " << wordA << ", " << probability*100 << "% chance of " << wordB << "\n";
+            //cout << "Given " << wordA << ", " << probability*100 << "% chance of " << wordB << "\n";
         }
     }
     
+}
+
+bool MarkovChain::chainContains(std::string word){
+    return (this->firstOrder.find(word) != this->firstOrder.end());
+}
+
+std::string MarkovChain::getMostProbableWord(std::string input){
+    if(!this->chainContains(input)){
+        return ".";
+    }else{
+        std::multimap<double, string> map = this->firstOrder.at(input);
+        return map.rbegin()->second;
+    }
+    return "";
 }
 
 void MarkovChain::printDictionary(){
