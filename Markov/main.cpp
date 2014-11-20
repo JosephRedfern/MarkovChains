@@ -26,7 +26,7 @@ public:
     void printDictionary();
     void generateHistogram();
     void printHistogram();
-    void generateSecondOrder();
+    void generateFirstOrder();
 };
 
 
@@ -42,8 +42,7 @@ int main(int argc, const char * argv[]) {
     MarkovChain* markov = new MarkovChain();
     markov->populate(path);
     markov->generateHistogram();
-    markov->generateSecondOrder();
-    markov->printHistogram();
+    markov->generateFirstOrder();
     
     return 0;
 }
@@ -64,9 +63,11 @@ void MarkovChain::populate(string filename)
                 }
             }
         }
+        cout << "OK, read file.\n";
+    }else{
+        cerr << "Unable to open file.\n";
+        exit(1);
     }
-    
-    cout << "OK, read file.\n";
 }
 
 void MarkovChain::generateHistogram(){
@@ -89,13 +90,13 @@ void MarkovChain::printHistogram(){
     
 }
 
-void MarkovChain::generateSecondOrder(){
-    std::map<string, std::map<string, int> > secondOrderHist;
+void MarkovChain::generateFirstOrder(){
+    std::map<string, std::map<string, int> > firstOrderHist;
     for(int i = 0; i < this->words.size()-1; i++){
-        secondOrderHist[this->words.at(i)][this->words.at(i+1)] += 1;
+        firstOrderHist[this->words.at(i)][this->words.at(i+1)] += 1;
     }
     
-    for(auto i = secondOrderHist.begin(); i != secondOrderHist.end(); ++i){ //iterator
+    for(auto i = firstOrderHist.begin(); i != firstOrderHist.end(); ++i){ //iterator
         string wordA = i->first;
         
         for(auto j = i->second.begin(); j != i->second.end(); ++j){
