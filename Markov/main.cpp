@@ -19,31 +19,31 @@ class MarkovChain
 private:
     std::vector<std::string> words;
     std::map<std::string, double> histogram;
-    std::map<std::string, std::map<std::string, double> > firstOrder;
+    std::map<std::string, std::multimap<double, std::string> > firstOrder;
     
 public:
     void populate(string);
     void printDictionary();
     void generateHistogram();
+    void printHistogram();
     void generateSecondOrder();
 };
 
 
 int main(int argc, const char * argv[]) {
-    if(argc < 2){
-        cerr << printf("Usage: %s [data] [order] [length]\n", argv[0]);
-        return 1;
-    }
-    
     string path;
-    cout << "Path to file: ";
-    cin >> path;
+    if(argc < 2){
+        cout << "Path to file: ";
+        cin >> path;
+    }else{
+        path = argv[1];
+    }
     
     MarkovChain* markov = new MarkovChain();
     markov->populate(path);
-//    markov->printDictionary();
     markov->generateHistogram();
-    
+    markov->generateSecondOrder();
+    markov->printHistogram();
     
     return 0;
 }
@@ -67,7 +67,6 @@ void MarkovChain::populate(string filename)
     }
     
     cout << "OK, read file.\n";
-    cout << "Words: " << this->words.size() << "\n";
 }
 
 void MarkovChain::generateHistogram(){
@@ -77,7 +76,36 @@ void MarkovChain::generateHistogram(){
     
 }
 
+void MarkovChain::printHistogram(){
+    if(this->words.size()==0){
+        cerr << "No Histogram data";
+        return;
+    }
+    
+    for(auto i = this->histogram.begin(); i!= this->histogram.end(); ++i){
+        cout << "Key:" << i->first << ", Value:" << i->second << "\n";
+    }
+    
+    
+}
+
 void MarkovChain::generateSecondOrder(){
+    std::map<string, std::map<string, int> > secondOrderHist;
+    for(int i = 0; i < this->words.size()-1; i++){
+        secondOrderHist[this->words.at(i)][this->words.at(i+1)] += 1;
+    }
+    
+    for(auto i = secondOrderHist.begin(); i != secondOrderHist.end(); ++i){ //iterator
+        string wordA = i->first;
+        
+        for(auto j = i->second.begin(); j != i->second.end(); ++j){
+            string wordB = j->first;
+            int freq = j->second;
+            double probability = freq / this->histogram.at(wordA);
+            this->firstOrder[wordA].insert(pair<double, string>(probability, wordB));
+            cout << "Given " << wordA << ", " << probability*100 << "% chance of " << wordB << "\n";
+        }
+    }
     
 }
 
